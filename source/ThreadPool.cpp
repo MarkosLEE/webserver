@@ -1,7 +1,8 @@
 #include"../head/ThreadPool.h"
 #include"../head/MutexGuard.h"
+#include<cstdio>
 ThreadPool::ThreadPool(const string& name):
-threadNum_(0),maxRequests_(0),running_(false),mutex_(),notEmpty_(),notFull_(),name_(name)
+threadNum_(0),maxRequests_(100),running_(false),mutex_(),notEmpty_(),notFull_(),name_(name)
 {
 }
 ThreadPool::~ThreadPool()
@@ -29,7 +30,7 @@ void ThreadPool::run(Task task)
     }
     else{
         MutexGuard lock(mutex_);//可能有多个线程调用线程池对象，所以这里要用锁保护起来
-        while(running_&&!isFull()){//这里存在一种可能，即任务队列notfull，但是线程池被stopped了，所以要检查running_的状态
+        while(running_&&isFull()){//这里存在一种可能，即任务队列notfull，但是线程池被stopped了，所以要检查running_的状态
             notFull_.wait(mutex_);//等待，直到不满
         }
         if(!running_){
@@ -70,13 +71,12 @@ bool ThreadPool::start(const int threadNum){
     if(running_){
         return false;
     }
-    running_=false;
+    running_=true;
     threadNum_=threadNum;
     threads_.reserve(threadNum_);
     for(int i=0; i<threadNum_; i++){
         threads_.emplace_back(new Thread(std::bind(&ThreadPool::threadRun,this),name_+std::to_string(i)));
-        threads_[i]->start();
-        
+        threads_[i]->start(); 
     }
     return true;
 }

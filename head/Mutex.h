@@ -2,6 +2,7 @@
 #define MUTEX_H
 #include<pthread.h>
 #include<exception>
+#include<cstdio>
 //线程同步，封装互斥锁类(使用pthread)
 //todo 使用C++11提供的mutex类替换pthread
 class Mutex
@@ -11,8 +12,9 @@ private:
     pthread_mutex_t mutex_;
 public:
     Mutex(){
-        if(!pthread_mutex_init(&mutex_,NULL)){
+        if(pthread_mutex_init(&mutex_,NULL)){
             //初始化锁失败，抛出异常
+            printf("init mutex fail\n");
             throw std::exception();
         }
     }

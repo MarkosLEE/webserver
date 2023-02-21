@@ -3,6 +3,7 @@
 #include"Mutex.h"
 #include<pthread.h>
 #include<exception>
+#include<cstdio>
 //封装条件变量类
 class Condition
 {
@@ -10,7 +11,8 @@ private:
     pthread_cond_t cond_;
 public:
     Condition(){
-        if(!pthread_cond_init(&cond_,NULL)){
+        if(pthread_cond_init(&cond_,NULL)){
+            printf("init condition fail\n");
             throw std::exception();
         }
     }

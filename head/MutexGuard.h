@@ -2,6 +2,7 @@
 #define MUTEXGUARD_H
 #include"Mutex.h"
 #include<exception>
+#include<cstdio>
 class MutexGuard
 {
 private:
@@ -12,6 +13,7 @@ public:
     MutexGuard(Mutex& m){
         mutex_=&m;
         if(!mutex_->lock()){
+            printf("mutex already locked!\n");
             throw std::exception();
         }
     }

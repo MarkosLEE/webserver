@@ -6,14 +6,14 @@ CXX = g++
 LD = ld 
 SRC= $(wildcard source/*.cpp)
 OBJS=$(patsubst %.cpp, %.o,$(SRC))
-target= test
+target= main
 .PHONY:clean all
 all: $(OBJS)
-	$(CXX) $^ -o $(target) -lpthread
+	$(CXX) $^ -o $(target) -g -Wall -lpthread
 clean:
-	rm  source/*.o source/$(target)
+	rm  source/*.o $(target) 
 %.o:%.cpp
-	$(CXX) -c $< -o $@
+	$(CXX) -c $< -o $@ -g -Wall
 #Thread.o: Thread.cpp
 #	$(CXX) -c source/$^ -o $@
 #ThreadPool.o: ThreadPool.cpp
