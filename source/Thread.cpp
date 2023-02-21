@@ -21,6 +21,7 @@ void Thread::start()
 void* Thread::startThread(void *thread){
     auto temp=static_cast<Thread*>(thread);
     temp->func_();
+    return NULL;
 }
 
 int Thread::join(){

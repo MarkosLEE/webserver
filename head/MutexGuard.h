@@ -21,12 +21,5 @@ public:
     }
 };
 
-MutexGuard::MutexGuard(/* args */)
-{
-}
-
-MutexGuard::~MutexGuard()
-{
-}
 
 #endif
