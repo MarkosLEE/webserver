@@ -16,5 +16,6 @@ int main(){
     pool.run(std::bind(task2,1,2));
     pool.run(task3);
     while(true){};//这里要用一个loop循环保持，要不然还未执行完任务程序就退出了
+    //pool.stop();
     return 0;
 }

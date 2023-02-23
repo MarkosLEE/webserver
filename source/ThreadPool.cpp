@@ -2,17 +2,14 @@
 #include"../head/MutexGuard.h"
 #include<cstdio>
 ThreadPool::ThreadPool(const string& name):
-threadNum_(0),maxRequests_(100),running_(false),mutex_(),notEmpty_(),notFull_(),name_(name)
-{
-}
-ThreadPool::~ThreadPool()
-{
+threadNum_(0),maxRequests_(100),running_(false),mutex_(),notEmpty_(),notFull_(),name_(name){}
+ThreadPool::~ThreadPool(){
     if(running_){
         stop();
     }
 }
-void ThreadPool::stop()
-{
+void ThreadPool::stop(){
+
     MutexGuard lock(mutex_);
     running_=false;
     notEmpty_.notifyAll();
@@ -23,8 +20,8 @@ void ThreadPool::stop()
     threads_.clear();
     queue_.clear();
 }
-void ThreadPool::run(Task task)
-{
+void ThreadPool::run(Task task){
+
     if(threads_.empty()){
         task();//如果线程池中不存在子线程，则当前线程执行任务
     }
@@ -74,7 +71,7 @@ bool ThreadPool::start(const int threadNum){
     running_=true;
     threadNum_=threadNum;
     threads_.reserve(threadNum_);
-    for(int i=0; i<threadNum_; i++){
+    for(size_t i=0; i<threadNum_; i++){
         threads_.emplace_back(new Thread(std::bind(&ThreadPool::threadRun,this),name_+std::to_string(i)));
         threads_[i]->start(); 
     }

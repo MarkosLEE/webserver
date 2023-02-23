@@ -4,12 +4,10 @@
 #include<cstdio>
 #include<exception>
 Thread::Thread(ThreadFunc func_,const string &name_):
-    func_(std::move(func_)),name_(name_),started_(false),join_(false)
-{
+    name_(name_),started_(false),join_(false),func_(std::move(func_)){
         tid_=static_cast<pid_t>(syscall(SYS_gettid));
 }
-void Thread::start()
-{
+void Thread::start(){
     started_=true;
     //这里要使用函数指针作为线程函数,所以使用回调机制，在线程函数中回调func_
     if(pthread_create(&this->pthreadId_,NULL,&Thread::startThread,this)){
