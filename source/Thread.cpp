@@ -4,8 +4,12 @@
 #include<cstdio>
 #include<exception>
 Thread::Thread(ThreadFunc func_,const string &name_):
-    name_(name_),started_(false),join_(false),func_(std::move(func_)){
-        tid_=static_cast<pid_t>(syscall(SYS_gettid));
+    name_(name_),
+    started_(false),
+    join_(false),
+    func_(std::move(func_))
+{
+    tid_=static_cast<pid_t>(syscall(SYS_gettid));
 }
 void Thread::start(){
     started_=true;

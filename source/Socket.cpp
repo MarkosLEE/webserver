@@ -29,3 +29,8 @@ ssize_t Socket::socketWritev(const int fd,struct iovec* iv,int ivCount){
 ssize_t Socket::socketRead(const int fd,char* msg,size_t len){
     return read(fd,msg,len);
 }
+bool Socket::socketSetNoBlocking(const int fd){
+    //设置socket非阻塞
+    int flags = fcntl(fd, F_GETFL, 0); 
+    return fcntl(fd, F_SETFL, flags | O_NONBLOCK)!=-1;
+}

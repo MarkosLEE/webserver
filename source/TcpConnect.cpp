@@ -1,17 +1,32 @@
 #include"../head/TcpConnect.h"
 #include<cstdio>
 #include<errno.h>
+TcpConnect::TcpConnect(const int socketFd_,int buffMaxLength_,std::shared_ptr<Epoll> epoll_):
+        socketFd_(socketFd_),
+        buffMaxLength_(buffMaxLength_),
+        buff_(new char[buffMaxLength_]),
+        buffCurentLength_(0),
+        epoll_(epoll_)
+    {
+        buffPtr_=buff_.get();
+    }
 char* TcpConnect::get(){
     return buff_.get();
 }
 //返回false，代表连接出错，从map中删去(析构函数自动关闭socket)
 bool TcpConnect::read(){
-    if(buffCurentLength_>=buffMaxLength_){
-        return false;
-    }
     while(true){
+        if(buffCurentLength_>=buffMaxLength_){
+            printf("data overflow!\n");
+            return false;
+        }
         int tempLength=Socket::socketRead(socketFd_,buffPtr_+buffCurentLength_,buffMaxLength_-buffCurentLength_);
-        if(tempLength>0){
+        printf("read length:%d\n",tempLength);
+        if(tempLength==0){
+            //对端连接关闭
+            return false;
+        }
+        else if(tempLength>0){
             buffCurentLength_=buffCurentLength_+tempLength;
         }
         else{
@@ -19,7 +34,7 @@ bool TcpConnect::read(){
                 //连接未出错，缓冲区没有数据可读   
                 return true;
             }
-            //缓冲区过大
+            //其他错误
             printf(" socket read fail!\n");
             return false;
         }

@@ -17,9 +17,6 @@ public:
     static int socketInit(){
         //协议族 套接字接口类型 传输协议编号 返回socketfd
         int socketFd=socket(AF_INET,SOCK_STREAM,0);
-        //设置socket非阻塞
-        int flags = fcntl(socketFd, F_GETFL, 0); 
-        fcntl(socketFd, F_SETFL, flags | O_NONBLOCK);
         return socketFd;
     }
     static int socketBind(const int fd,const string& addr,const int port);//绑定端口号和IP
@@ -36,6 +33,7 @@ public:
     static ssize_t socketWritev(const int fd,struct iovec* iv,int ivCount);
     static ssize_t socketRead(const int fd,char *buf,size_t len);//返回-1代表失败
     static void socketClose(const int fd){close(fd);}//关闭socket连接
+    static bool socketSetNoBlocking(const int fd);//设置socket非阻塞
 };
 
 

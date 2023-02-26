@@ -1,5 +1,11 @@
 #include"../head/Epoll.h"
-void Epoll::append(const int socketFd){
+#include"../head/Socket.h"
+#include<assert.h>
+bool Epoll::append(const int socketFd,bool isOneShot_){
+    if(currentEventsNum_<maxEventsNum_){
+        currentEventsNum_++;
+    }
+    else return false;
     struct epoll_event ev;
     ev.events=EPOLLIN;
     if(isOneShot_) {
@@ -8,6 +14,8 @@ void Epoll::append(const int socketFd){
     }
     ev.data.fd=socketFd;
     epoll_ctl(epollFd_,EPOLL_CTL_ADD,socketFd,&ev);
+    assert(Socket::socketSetNoBlocking(socketFd));
+    return true;
 }
 void Epoll::del(const int socketFd){
     struct epoll_event ev;
