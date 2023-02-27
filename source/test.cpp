@@ -1,6 +1,6 @@
-#include"../head/TcpServer.h"
+#include"../head/WebServer.h"
 int main(){
-    TcpServer s1(8080,100,100,"testServer","0.0.0.0",10);
+    WebServer s1(8080,100,100,"testServer","0.0.0.0",10);
     if(!s1.start()){
         printf("start tcpserver error!\n");
     }

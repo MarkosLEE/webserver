@@ -21,7 +21,6 @@ bool TcpConnect::read(){
             return false;
         }
         int tempLength=Socket::socketRead(socketFd_,buffPtr_+buffCurentLength_,buffMaxLength_-buffCurentLength_);
-        printf("read length:%d\n",tempLength);
         if(tempLength==0){
             //对端连接关闭
             return false;
@@ -58,8 +57,8 @@ bool TcpConnect::wirte(){
         return true;
     }
 }
-bool TcpConnect::wirtev(struct iovec* iv,int ivCount){
-    if(Socket::socketWritev(socketFd_, iv,ivCount)<0){
+bool TcpConnect::wirtev(){
+    if(Socket::socketWritev(socketFd_, iv.get(),ivCount)<0){
         // 如果TCP写缓冲没有空间，则等待下一轮EPOLLOUT事件
         if(errno==EAGAIN){
             epoll_->mod(socketFd_,EPOLLOUT);
