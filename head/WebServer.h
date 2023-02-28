@@ -2,10 +2,12 @@
 #define WEBSERVER_H
 #include"TcpServer.h"
 #include"HttpConnect.h"
+#include"Type.h"
 class WebServer:public TcpServer
 {
 private:
     std::map<int,std::unique_ptr<HttpConnect>>connects_;//fd作为键
+    string rootPath;//资源根目录
 public:
     WebServer(int port_,int maxConnection_,int maxEvents_,const string& name_,const string& address_,int threadNum_);
     ~WebServer(){}
@@ -13,5 +15,6 @@ public:
     virtual void handleRead(const int fd) override;//处理读事件
     virtual void handleWrite(const int fd) override;//处理写事件
     virtual void handleParseHttp(const int fd) override;//解析http报文
+    void setRootPath(const string&);//设置根目录
 };
 #endif

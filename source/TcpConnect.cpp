@@ -1,20 +1,21 @@
 #include"../head/TcpConnect.h"
 #include<cstdio>
 #include<errno.h>
+#include<string.h>
 TcpConnect::TcpConnect(const int socketFd_,int buffMaxLength_,std::shared_ptr<Epoll> epoll_):
         socketFd_(socketFd_),
         buffMaxLength_(buffMaxLength_),
         buff_(new char[buffMaxLength_]),
         buffCurentLength_(0),
-        epoll_(epoll_)
-    {
-        buffPtr_=buff_.get();
-    }
+        epoll_(epoll_),
+        iv_(new struct iovec[2])
+    {}    
 char* TcpConnect::get(){
     return buff_.get();
 }
 //返回false，代表连接出错，从map中删去(析构函数自动关闭socket)
 bool TcpConnect::read(){
+    char* buffPtr_=buff_.get();
     while(true){
         if(buffCurentLength_>=buffMaxLength_){
             printf("data overflow!\n");
@@ -23,6 +24,7 @@ bool TcpConnect::read(){
         int tempLength=Socket::socketRead(socketFd_,buffPtr_+buffCurentLength_,buffMaxLength_-buffCurentLength_);
         if(tempLength==0){
             //对端连接关闭
+            printf("socket close\n");
             return false;
         }
         else if(tempLength>0){
@@ -42,28 +44,49 @@ bool TcpConnect::read(){
 //返回false，代表连接出错，从map中删去(析构函数自动关闭socket)
 //返回true,并不代表写入成功，可能需要重新调用wirte(通过判断currentLength_)
 bool TcpConnect::wirte(){
-    if(Socket::socketWrite(socketFd_,buffPtr_,buffCurentLength_)<0){
-        if(errno==EAGAIN){
-            epoll_->mod(socketFd_,EPOLLOUT);
-            return true;
+    while (buffCurentLength_>=0){
+        int temp=Socket::socketWrite(socketFd_, buff_.get(),buffCurentLength_);
+        if(temp<0){
+            // 如果TCP写缓冲没有空间，则等待下一轮EPOLLOUT事件
+            if(errno==EAGAIN){
+                epoll_->mod(socketFd_,EPOLLOUT);
+                return true;
+            }
+            return false;
         }
-        //写失败
-        printf("fd %d wirte error!\n",socketFd_);
-        return false;
+        else{
+            buffCurentLength_=buffCurentLength_-temp;
+        }
     }
-    //假设一次性全部写成功
-    else{
-        buffCurentLength_=0;
-        return true;
-    }
+    buffCurentLength_=0;
+    memset(buff_.get(),0,buffMaxLength_);//发送成功，将缓冲区置0
+    setReady(false);
+    return true;
 }
 bool TcpConnect::wirtev(){
-    if(Socket::socketWritev(socketFd_, iv.get(),ivCount)<0){
-        // 如果TCP写缓冲没有空间，则等待下一轮EPOLLOUT事件
-        if(errno==EAGAIN){
-            epoll_->mod(socketFd_,EPOLLOUT);
+    while (buffCurentLength_>=0)
+    {
+        int temp=Socket::socketWritev(socketFd_, iv_.get(),ivCount_);
+        if(temp<0){
+            // 如果TCP写缓冲没有空间，则等待下一轮EPOLLOUT事件
+            if(errno==EAGAIN){
+                epoll_->mod(socketFd_,EPOLLOUT);
+                return true;
+            }
+            return false;
         }
-        return false;
+        else{
+            buffCurentLength_=buffCurentLength_-temp;
+        }
     }
+    buffCurentLength_=0;
+    memset(buff_.get(),0,buffMaxLength_);//发送成功，将缓冲区置0
+    setReady(false);
     return true;
+}
+void TcpConnect::setReady(bool flag){
+    isReady_=flag;
+}
+bool TcpConnect::isReady(){
+    return isReady_;
 }

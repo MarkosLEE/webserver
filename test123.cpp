@@ -2,6 +2,7 @@
 #include<memory>
 #include<cstdio>
 #include<vector>
+#include<string>
 using namespace std;
 class apple{
 public:
@@ -10,7 +11,7 @@ public:
     }
 };
 int main(){
-     unique_ptr<char[]>q(new char[8]);
+    //unique_ptr<char[]>q(new char[8]);
     // for(int i=0; i<4; i++){
     //     q[i]='a';
     // }
@@ -21,6 +22,8 @@ int main(){
     //     (*temp)='b';
     // }
     // printf("%s\n",q.get());
-    unique_ptr<vector<apple>>v(new vector<apple>);
-    v->emplace_back(std::move(apple()));
+    //unique_ptr<vector<apple>>v(new vector<apple>);
+    //v->emplace_back(std::move(apple()));
+    string str="abc\r\n\r\nedf";
+    cout<<str<<endl;
 }
