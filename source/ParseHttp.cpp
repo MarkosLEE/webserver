@@ -2,7 +2,7 @@
 #include<algorithm>
 const std::vector<string> ParseHttp::methodName={"GET","POST","HEAD","PUT","DELETE","TRACE","OPTIONS","CONNECT"};
 
-const std::vector<string> ParseHttp::httpVersion={"HTTP/1.1"};
+const std::vector<string> ParseHttp::httpVersion={"HTTP/1.1","HTTP/1.0"};
 
 const std::vector<string> ParseHttp::codeDescript={"Bad Request","Forbidden","Not Found","OK"};
 
@@ -49,6 +49,7 @@ int ParseHttp::requestVersion(char* &buff){
         return std::distance(ParseHttp::httpVersion.begin(),res);
     }
     else{
+        printf("version:%s error!\n",version.c_str());
         return -1;//版本号错误，断开连接
     }
 }
@@ -79,6 +80,7 @@ bool ParseHttp::isKeepLive(char* &buff){
     }
     buff++;
     buff++;
+    //printf("%s\n",str.c_str());
     if(str=="keep-alive"){
         return true;
     }

@@ -7,6 +7,9 @@ WebServer::WebServer(int port_,int maxConnection_,int maxEvents_,const string& n
     {}
 bool WebServer::start(){
     //完成listenfd对于端口和IP的绑定
+    int handleRead=0;
+    int handleWirte=0;
+    int handleConnect=0;
     int listenFd=listenConnect_.fd();
     if(listenFd<0){
         printf("listen socket error!\n");
@@ -40,10 +43,11 @@ bool WebServer::start(){
                     printf("accept new socket fail\t errno:%d",errno);
                     continue;
                 }
-                //printf("connect!\n");
                 epollPtr_->append(newFd,true);
                 connects_.insert(std::make_pair(newFd,std::make_unique<HttpConnect>(newFd,buffMaxLength_,epollPtr_)));
-                printf("connect num:%ld\n",connects_.size());
+                handleConnect++;
+                printf("connect:%d\n",handleConnect);
+                //printf("connect num:%ld\n",connects_.size());
             }
             else if(epollPtr_->events_[i].events&( EPOLLRDHUP | EPOLLHUP | EPOLLERR )){
                 //发送三种事件：读关闭 读写都关闭 错误事件，至少发送一件，关闭连接
@@ -56,12 +60,14 @@ bool WebServer::start(){
             }
             else if(epollPtr_->events_[i].events&EPOLLIN){
                 //读事件
-                //printf("handleRead\n");
+                handleRead++;
+                printf("handleRead:%d\n",handleRead);
                 threadPoolPtr_->run(std::bind(&WebServer::handleRead,this,eventFd));
             }
             else if(epollPtr_->events_[i].events&EPOLLOUT){
                 //写事件
-                //printf("handleWrite\n");
+                handleWirte++;
+                printf("handleWrite:%d\n",handleWirte);
                 threadPoolPtr_->run(std::bind(&WebServer::handleWrite,this,eventFd));
             }
         }
@@ -83,6 +89,7 @@ void WebServer::handleParseHttp(const int socketFd){
     
     int kind=ParseHttp::requestKind(buff);
     if(kind==-1){
+        printf("kind error!\n");
         connects_.erase(socketFd);
         return;
     }
@@ -117,6 +124,7 @@ void WebServer::handleWrite(const int socketFd){
 
     if(!connects_[socketFd]->wirtev()){
         //发送失败，断开连接
+        printf("wirte error!\n");
         connects_.erase(socketFd);
         return;
     }
@@ -130,7 +138,8 @@ void WebServer::handleWrite(const int socketFd){
         return;
     }
     //发送成功，重新注册可读事件
-    epollPtr_->mod(socketFd,EPOLLIN);
+    //epollPtr_->mod(socketFd,EPOLLIN);
+    connects_.erase(socketFd);
 
 }
 void WebServer::setRootPath(const string&path){
