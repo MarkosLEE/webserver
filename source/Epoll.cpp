@@ -1,5 +1,6 @@
 #include"../head/Epoll.h"
 #include"../head/Socket.h"
+#include<stdio.h>
 #include<assert.h>
 bool Epoll::append(const int socketFd,bool isOneShot_){
     if(currentEventsNum_<maxEventsNum_){

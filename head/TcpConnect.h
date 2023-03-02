@@ -10,16 +10,13 @@ protected:
     int buffMaxLength_;
     std::unique_ptr<char[]>buff_;
     int buffCurentLength_;
-    std::shared_ptr<Epoll> epoll_;
+    std::shared_ptr<Epoll> epoll_;//线程安全
     std::unique_ptr< struct iovec[]> iv_;//指向要发送的资源文件
     int ivCount_;//要发送的资源文件数量
     bool isReady_;//是否已准备好发送
 public:
     TcpConnect(const int socketFd_,int buffMaxLength_,std::shared_ptr<Epoll> epoll_);
-    ~TcpConnect(){
-        epoll_->del(socketFd_);
-        Socket::socketClose(socketFd_);
-    }
+    ~TcpConnect();
     bool read();//从缓冲区读数据
     bool wirte();//往缓冲区写数据
     bool wirtev();//聚集写

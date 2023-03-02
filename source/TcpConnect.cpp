@@ -13,6 +13,10 @@ TcpConnect::TcpConnect(const int socketFd_,int buffMaxLength_,std::shared_ptr<Ep
 char* TcpConnect::get(){
     return buff_.get();
 }
+TcpConnect::~TcpConnect(){
+    epoll_->del(socketFd_);
+    Socket::socketClose(socketFd_);
+}
 //返回false，代表连接出错，从map中删去(析构函数自动关闭socket)
 bool TcpConnect::read(){
     char* buffPtr_=buff_.get();
