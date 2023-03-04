@@ -5,9 +5,8 @@
 #include"Type.h"
 class WebServer:public TcpServer
 {
-    typedef std::shared_ptr<HttpConnect> httpPtr;
 private:
-    std::map<int,httpPtr>connects_;//fd作为键，非线程安全,写事件全部上锁
+    std::map<int,HttpPtr>connects_;//fd作为键，非线程安全,写事件全部上锁
     size_t httpConnectCount_;//当前连接的数量
     string rootPath_;//资源根目录
 public:
@@ -20,6 +19,6 @@ public:
     void setRootPath(const string&);//设置根目录
     void append(int socketFd);//增加连接
     void del(int socketFd);//删除连接
-    httpPtr getHttpConnect(int socketFd);
+    HttpPtr getHttpConnect(int socketFd);
 };
 #endif

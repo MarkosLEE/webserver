@@ -7,16 +7,20 @@ TcpConnect::TcpConnect(const int socketFd_,int buffMaxLength_,std::shared_ptr<Ep
         buffMaxLength_(buffMaxLength_),
         buff_(new char[buffMaxLength_]),
         buffCurentLength_(0),
+        buffReadPos_(0),
         epoll_(epoll_),
         iv_(new struct iovec[2])
     {}    
+
 char* TcpConnect::get(){
     return buff_.get();
 }
+
 TcpConnect::~TcpConnect(){
     epoll_->del(socketFd_);
     Socket::socketClose(socketFd_);
 }
+
 //返回false，代表连接出错，从map中删去(析构函数自动关闭socket)
 bool TcpConnect::read(){
     char* buffPtr_=buff_.get();
@@ -45,6 +49,7 @@ bool TcpConnect::read(){
         }
     }
 }
+
 //返回false，代表连接出错，从map中删去(析构函数自动关闭socket)
 //返回true,并不代表写入成功，可能需要重新调用wirte(通过判断currentLength_)
 bool TcpConnect::wirte(){
@@ -67,6 +72,7 @@ bool TcpConnect::wirte(){
     setReady(false);
     return true;
 }
+
 bool TcpConnect::wirtev(){
     while (buffCurentLength_>=0)
     {
@@ -77,6 +83,7 @@ bool TcpConnect::wirtev(){
                 epoll_->mod(socketFd_,EPOLLOUT);
                 return true;
             }
+            printf("errno:%d\n",errno);
             return false;
         }
         else{
@@ -88,9 +95,31 @@ bool TcpConnect::wirtev(){
     setReady(false);
     return true;
 }
+
 void TcpConnect::setReady(bool flag){
     isReady_=flag;
 }
+
 bool TcpConnect::isReady(){
     return isReady_;
+}
+
+void TcpConnect::setReadPos(const int pos){
+    buffReadPos_=pos;
+}
+
+int TcpConnect::getReadPos(){
+    return  buffReadPos_;
+}
+
+SharedBuffPtr TcpConnect::getBuffPtr(){
+    return buff_;
+}
+
+int TcpConnect::getBuffMaxLength(){
+    return buffMaxLength_;
+}
+
+int TcpConnect::getBuffCurrentLength(){
+    return buffCurentLength_;
 }

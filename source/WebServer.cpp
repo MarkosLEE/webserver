@@ -9,9 +9,6 @@ WebServer::WebServer(int port_,int maxConnection_,int maxEvents_,const string& n
     {}
 bool WebServer::start(){
     //完成listenfd对于端口和IP的绑定
-    int handleRead=0;
-    int handleWirte=0;
-    int handleConnect=0;
     int listenFd=listenConnect_.fd();
     if(listenFd<0){
         printf("listen socket error!\n");
@@ -50,7 +47,7 @@ bool WebServer::start(){
                     return false;
                 }
                 append(newFd);
-                handleConnect++;
+                //handleConnect++;
                 //printf("connect:%d\n",handleConnect);
                 //printf("connect num:%ld\n",connects_.size());
             }
@@ -65,14 +62,14 @@ bool WebServer::start(){
             }
             else if(epollPtr_->events_[i].events&EPOLLIN){
                 //读事件
-                handleRead++;
-                printf("handleRead:%d\n",handleRead);
+                //handleRead++;
+                //printf("handleRead:%d\n",handleRead);
                 threadPoolPtr_->run(std::bind(&WebServer::handleRead,this,eventFd));
             }
             else if(epollPtr_->events_[i].events&EPOLLOUT){
                 //写事件
-                handleWirte++;
-                printf("handleWrite:%d\n",handleWirte);
+                //handleWirte++;
+                //printf("handleWrite:%d\n",handleWirte);
                 threadPoolPtr_->run(std::bind(&WebServer::handleWrite,this,eventFd));
             }
         }
@@ -81,7 +78,7 @@ bool WebServer::start(){
 }
 
 void WebServer::handleRead(const int socketFd){
-    httpPtr tempPtr=getHttpConnect(socketFd);
+    HttpPtr tempPtr=getHttpConnect(socketFd);
     if(!tempPtr->read()){
         //printf("read data error!\n");
         del(socketFd);
@@ -91,43 +88,40 @@ void WebServer::handleRead(const int socketFd){
     threadPoolPtr_->run(std::bind(&WebServer::handleParseHttp,this,socketFd));
 }
 void WebServer::handleParseHttp(const int socketFd){
-    httpPtr tempPtr=getHttpConnect(socketFd);
-    char *buff=tempPtr->get();
-    int kind=ParseHttp::requestKind(buff);
-    if(kind==-1){
-        printf("kind error!\n");
+    HttpPtr tempPtr=getHttpConnect(socketFd);
+    if(!ParseHttp::parseFirstLine(tempPtr)){
+        //解析请求行出现错误
         del(socketFd);
         return;
     }
-    else if(kind==ParseHttp::GET){
-        //获取资源地址
-        string path=ParseHttp::requestResource(buff);
-        //获取http版本
-        int version=ParseHttp::requestVersion(buff);
-        if(version==-1){
-            //版本号错误，断开连接
+    int state;
+    while(true){
+        state=ParseHttp::parseOneLine(tempPtr);
+        if(state==0){
+            break;
+        }
+        else if(state==-1){
+            //解析请求行出现错误
             del(socketFd);
-            return;
+            return;            
         }
-        else{
-            tempPtr->setHttpVersion(ParseHttp::httpVersion[version]);
-        }
-        if(ParseHttp::requestHost(buff)!=address_+":"+std::to_string(port_)){
-            //与服务器IP端口不匹配（服务器IP使用的是0.0.0.0）所以一定会匹配成功
-            //connects_.erase(socketFd);
-        }
-        tempPtr->setKeepAlive(ParseHttp::isKeepLive(buff));
-        //设置发送数据
-        ParseHttp::HttpCode httpCode=tempPtr->setIv(path,rootPath_);
-        tempPtr->setReply(httpCode);
     }
-    //printf("%s",connects_[socketFd]->get());
-    //最后要注册监听写事件
-    epollPtr_->mod(socketFd,EPOLLOUT);
-    //threadPoolPtr_->run(std::bind(&WebServer::handleWrite,this,socketFd));
+    HttpCode httpCode;
+    switch (tempPtr->getKind())
+    {
+    case GET:
+        httpCode=tempPtr->setIv(tempPtr->getResource(),rootPath_);
+        tempPtr->setGetReply(httpCode);
+        //最后要注册监听写事件
+        epollPtr_->mod(socketFd,EPOLLOUT);
+        break;
+    default:
+        break;
+    }
+
 }
 void WebServer::handleWrite(const int socketFd){
-    httpPtr tempPtr=getHttpConnect(socketFd);
+    HttpPtr tempPtr=getHttpConnect(socketFd);
     if(!tempPtr->wirtev()){
         //发送失败，断开连接
         printf("wirte error!\n");
@@ -161,7 +155,7 @@ void WebServer::del(int socketFd){
     connects_.erase(socketFd);
 }
 
-WebServer::httpPtr WebServer::getHttpConnect(int socketFd){
+HttpPtr WebServer::getHttpConnect(int socketFd){
     MutexGuard lock(mutex_);
     return connects_[socketFd];
 }

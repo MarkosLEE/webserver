@@ -29,7 +29,7 @@ public:
     //由于使用了oneshot所以一个fd同时只能被一个线程操作，关于epoll事件的修改也是线程安全的
     bool append(const int socketFd,bool isOneShot_);//注册epoll读事件
     int wait(){return epoll_wait(epollFd_,events_.get(),maxEventsNum_,-1);}//等待事件到来
-    void del(const int socketFd);//删除监视列表中的某个fd
+    int del(const int socketFd);//删除监视列表中的某个fd
     void mod(const int socketFd,int option);//重置epoll对socketFd_监听事件
 };
 #endif

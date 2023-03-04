@@ -7,12 +7,13 @@
 HttpConnect::HttpConnect(const int socketFd_,int buffMaxLength_,std::shared_ptr<Epoll> epoll_):
     TcpConnect(socketFd_, buffMaxLength_, epoll_)
     {}
+
 void HttpConnect::setCount(int count){
     ivCount_=count;
     return;
 }
 
-ParseHttp::HttpCode HttpConnect::setIv(const string path,const string rootPath){
+HttpCode HttpConnect::setIv(const string path,const string rootPath){
     setCount(1);
     string filePath=rootPath+path;
     if(path=="/"){
@@ -24,15 +25,15 @@ ParseHttp::HttpCode HttpConnect::setIv(const string path,const string rootPath){
         //没有该资源
         //printf("%s\n",filePath.c_str());
         //printf("errno:%d\n",errno);
-        return ParseHttp::NO_RESOURCE;
+        return NO_RESOURCE;
     }
     // 判断访问权限
     if ( ! ( fileStat.st_mode & S_IROTH ) ) {
-        return ParseHttp::FORBIDDEN_REQUEST;
+        return FORBIDDEN_REQUEST;
     }
     // 判断是否是目录
     if ( S_ISDIR( fileStat.st_mode ) ) {
-        return ParseHttp::BAD_REQUEST;
+        return BAD_REQUEST;
     }
     // 以只读方式打开文件
     int fd = open( filePath.c_str(), O_RDONLY );
@@ -42,16 +43,16 @@ ParseHttp::HttpCode HttpConnect::setIv(const string path,const string rootPath){
     setCount(2);
     iv_[1].iov_base=fileAddress;
     iv_[1].iov_len=fileStat.st_size;
-    return ParseHttp::FILE_REQUEST;
+    return FILE_REQUEST;
 }
 
-void HttpConnect::setReply(ParseHttp::HttpCode httpCode){
+void HttpConnect::setGetReply(HttpCode httpCode){
     //先清空缓冲区
     memset(buff_.get(),0,buffMaxLength_);
     buffCurentLength_=0;
     char* buffPtr=buff_.get();
     //填充版本号
-    append(buffPtr,httpVersion_+' ');
+    append(buffPtr,request_.httpVersion_+' ');
     //填充状态码和状态码描述
     string  stateLine;
     stateLine=stateLine+std::to_string(ParseHttp::stateNum[httpCode])+' '+ParseHttp::codeDescript[httpCode]+"\r\n";
@@ -59,7 +60,7 @@ void HttpConnect::setReply(ParseHttp::HttpCode httpCode){
     //添加必要的响应头部
     //添加content-length字段
     string contentLength="Content-Length: ";
-    if(httpCode==ParseHttp::FILE_REQUEST){
+    if(httpCode==FILE_REQUEST){
         contentLength=contentLength+std::to_string(iv_[1].iov_len)+"\r\n";
     }
     else{
@@ -71,7 +72,7 @@ void HttpConnect::setReply(ParseHttp::HttpCode httpCode){
     append(buffPtr,contentType);
     //添加connect字段
     string connection="Connection: ";
-    if(isKeepAlive_){
+    if(request_.isKeepAlive_){
         connection=connection+"keep-alive\r\n";
     }
     else{
@@ -85,19 +86,42 @@ void HttpConnect::setReply(ParseHttp::HttpCode httpCode){
     setReady(true);
 }
 
-void HttpConnect::setKeepAlive(bool flag){
-    isKeepAlive_=flag;
+void HttpConnect::setKeepAlive(const string&str){
+    if(str.compare("keep-alive")==0){
+        request_.isKeepAlive_=true;
+    }
+    else{
+        request_.isKeepAlive_=false;
+    }
 }
 
 bool HttpConnect::isKeepAlive(){
-    return isKeepAlive_;
+    return request_.isKeepAlive_;
 }
 
 void HttpConnect::setHttpVersion(const string&str){
-    httpVersion_=str;
+    //printf("version:%s\n",str.c_str());
+    request_.httpVersion_=str;
 }
 
 void HttpConnect::append(char* &ptr,const string&str){
     strcpy(ptr+buffCurentLength_,str.c_str());
     buffCurentLength_=buffCurentLength_+str.size();
+}
+
+void HttpConnect::setKind(const int kind){
+    request_.kind_=kind;
+}
+
+void HttpConnect::setResource(const string&path){
+    //printf("path:%s\n",path.c_str());
+    request_.resource_=path;
+}
+
+const string HttpConnect::getResource(){
+    return request_.resource_;
+}
+
+int HttpConnect::getKind(){
+    return request_.kind_;
 }

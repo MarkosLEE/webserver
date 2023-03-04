@@ -18,11 +18,12 @@ bool Epoll::append(const int socketFd,bool isOneShot_){
     assert(Socket::socketSetNoBlocking(socketFd));
     return true;
 }
-void Epoll::del(const int socketFd){
+int Epoll::del(const int socketFd){
     struct epoll_event ev;
     ev.events=EPOLLIN;
     ev.data.fd=socketFd;
-    epoll_ctl(epollFd_,EPOLL_CTL_DEL,socketFd,&ev);
+    currentEventsNum_--;
+    return epoll_ctl(epollFd_,EPOLL_CTL_DEL,socketFd,&ev);
 }
 void Epoll::mod(const int socketFd,int option){
     struct epoll_event ev;
