@@ -16,7 +16,7 @@ private:
     struct Request request_;//请求报文的相关属性
 public:
     HttpConnect(const int socketFd_,int buffMaxLength_,std::shared_ptr<Epoll> epoll_);
-    ~HttpConnect(){};
+    ~HttpConnect();
     void setKeepAlive(const string&);
     bool isKeepAlive();
     void setCount(int count);//设置缓冲区个数
@@ -28,6 +28,7 @@ public:
     int getKind();
     void setResource(const string&);
     const string getResource();
+    int release();//释放内存映射
 };
 typedef std::shared_ptr<HttpConnect> HttpPtr;
 #endif

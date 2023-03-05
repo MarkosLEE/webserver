@@ -54,9 +54,6 @@ bool WebServer::start(){
             else if(epollPtr_->events_[i].events&( EPOLLRDHUP | EPOLLHUP | EPOLLERR )){
                 //发送三种事件：读关闭 读写都关闭 错误事件，至少发送一件，关闭连接
                 printf("socket shutdown\n");
-                if(epollPtr_->events_[i].events){
-                    printf("events error\n");
-                }
                 del(eventFd);
                 printf("erase socketfd:%d!\n",eventFd);
             }
@@ -139,6 +136,8 @@ void WebServer::handleWrite(const int socketFd){
     }
     //发送成功，重新注册可读事件
     //epollPtr_->mod(socketFd,EPOLLIN);
+    //发送成功后，或要删除连接前都需要使用munmap释放内存映射
+    tempPtr->release();
     del(socketFd);//不保留连接
 
 }

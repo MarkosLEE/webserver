@@ -8,6 +8,10 @@ HttpConnect::HttpConnect(const int socketFd_,int buffMaxLength_,std::shared_ptr<
     TcpConnect(socketFd_, buffMaxLength_, epoll_)
     {}
 
+HttpConnect::~HttpConnect(){
+    release();
+}
+
 void HttpConnect::setCount(int count){
     ivCount_=count;
     return;
@@ -38,6 +42,10 @@ HttpCode HttpConnect::setIv(const string path,const string rootPath){
     // 以只读方式打开文件
     int fd = open( filePath.c_str(), O_RDONLY );
     // 创建内存映射
+    if(fd<0){
+        printf("fd return error!\n");
+        return BAD_REQUEST;
+    }
     char* fileAddress = ( char* )mmap( 0, fileStat.st_size, PROT_READ, MAP_PRIVATE, fd, 0 );
     close( fd );
     setCount(2);
@@ -124,4 +132,11 @@ const string HttpConnect::getResource(){
 
 int HttpConnect::getKind(){
     return request_.kind_;
+}
+
+int HttpConnect::release(){
+    if(ivCount_>1){
+        return munmap(iv_[1].iov_base,iv_[1].iov_len);
+    }
+    return 0;
 }
