@@ -1,35 +1,43 @@
 #ifndef CONDITION_H
 #define CONDITION_H
-#include"Mutex.h"
-#include<pthread.h>
-#include<exception>
-#include<cstdio>
-//封装条件变量类
+#include "Mutex.h"
+#include <pthread.h>
+#include <exception>
+#include <cstdio>
+// 封装条件变量类
 class Condition
 {
 private:
     pthread_cond_t cond_;
+
 public:
-    Condition(){
-        if(pthread_cond_init(&cond_,NULL)){
+    Condition()
+    {
+        if (pthread_cond_init(&cond_, NULL))
+        {
             printf("init condition fail\n");
             throw std::exception();
         }
     }
-    ~Condition(){
+    ~Condition()
+    {
         pthread_cond_destroy(&cond_);
     }
-    bool wait(Mutex&m){
-        return !pthread_cond_wait(&cond_,m.get());
+    bool wait(Mutex &m)
+    {
+        return !pthread_cond_wait(&cond_, m.get());
     }
-    bool waitForTime(Mutex&m,const timespec&t){
-        return !pthread_cond_timedwait(&cond_,m.get(),&t);
+    bool waitForTime(Mutex &m, const timespec &t)
+    {
+        return !pthread_cond_timedwait(&cond_, m.get(), &t);
     }
-    bool notify(){
+    bool notify()
+    {
         return !pthread_cond_signal(&cond_);
     }
-    bool notifyAll(){
+    bool notifyAll()
+    {
         return !pthread_cond_broadcast(&cond_);
     }
 };
-#endif 
+#endif

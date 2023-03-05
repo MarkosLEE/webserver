@@ -14,5 +14,8 @@ TcpServer::TcpServer(int port_,int maxConnection_,int maxEvents_,const string& n
         epollPtr_(std::make_shared<Epoll>(maxEvents_,false)),
         listenConnect_(Socket::socketInit(),0,epollPtr_),
         threadPoolPtr_(std::make_unique<ThreadPool>(name_))
-        {}
-TcpServer::~TcpServer(){}
+        {
+        }
+TcpServer::~TcpServer()
+        { 
+        }
