@@ -1,5 +1,5 @@
-#include "../head/ParseHttp.h"
-#include "../head/HttpConnect.h"
+#include "../include/ParseHttp.h"
+#include "../include/HttpConnect.h"
 #include <algorithm>
 const std::map<string, int> ParseHttp::methodName = {
     {"GET", GET}, {"POST", POST}, {"HEAD", HEAD}, {"PUT", PUT}, {"DELETE", DELETE}, {"TRACE", GET}, {"OPTIONS", OPTIONS}, {"CONNECT", CONNECT}};
@@ -130,14 +130,15 @@ int ParseHttp::parseOneLine(HttpPtr &httpPtr)
             return -1;
         }
     }
-    if (ParseHttp::header.find(head) == ParseHttp::header.end())
+    auto res=ParseHttp::header.find(head);
+    if (res == ParseHttp::header.end())
     {
         // 头部字段不存在
         return -1;
     }
     // 重载[]的重载函数不是const函数，所以const对象无法调用
     // 若at不存在时，会抛出out of range异常，但是我们上面已经检查过head存在了
-    switch (ParseHttp::header.at(head))
+    switch (res->second)
     {
     case Host:
         // 验证是否与服务器IP和监听端口号一致

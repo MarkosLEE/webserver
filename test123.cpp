@@ -3,6 +3,7 @@
 #include<cstdio>
 #include<vector>
 #include<string>
+#include<algorithm>
 using namespace std;
 class apple{
 public:
@@ -24,6 +25,9 @@ int main(){
     // printf("%s\n",q.get());
     //unique_ptr<vector<apple>>v(new vector<apple>);
     //v->emplace_back(std::move(apple()));
-    string str="abc\r\n\r\nedf";
-    cout<<str<<endl;
+    vector<string> v={"abc","ab","abdf","a"};
+    sort(v.begin(),v.end());
+    for(int i=0; i<v.size(); ++i){
+        cout<<v[i]<<endl;
+    }
 }

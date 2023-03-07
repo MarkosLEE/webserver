@@ -1,6 +1,6 @@
-#include "../head/WebServer.h"
-#include "../head/ParseHttp.h"
-#include "../head/MutexGuard.h"
+#include "../include/WebServer.h"
+#include "../include/ParseHttp.h"
+#include "../include/MutexGuard.h"
 #include <assert.h>
 WebServer::WebServer(int port_, int maxConnection_, int maxEvents_, const string &name_, const string &address_, int threadNum_) : TcpServer(port_, maxConnection_, maxEvents_, name_, address_, threadNum_),
                                                                                                                                    connects_(),

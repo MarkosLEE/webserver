@@ -1,4 +1,4 @@
-#include "../head/Thread.h"
+#include "../include/Thread.h"
 #include <pthread.h>
 #include <assert.h>
 #include <cstdio>

@@ -1,5 +1,5 @@
-#include "../head/HttpConnect.h"
-#include "../head/ParseHttp.h"
+#include "../include/HttpConnect.h"
+#include "../include/ParseHttp.h"
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <string.h>

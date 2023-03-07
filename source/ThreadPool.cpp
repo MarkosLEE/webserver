@@ -1,5 +1,5 @@
-#include "../head/ThreadPool.h"
-#include "../head/MutexGuard.h"
+#include "../include/ThreadPool.h"
+#include "../include/MutexGuard.h"
 #include <cstdio>
 ThreadPool::ThreadPool(const string &name) : threadNum_(0),
                                              maxRequests_(100),

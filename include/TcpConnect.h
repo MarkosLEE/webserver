@@ -1,7 +1,7 @@
 #ifndef TCPCONNECT_H
 #define TCPCONNECT_H
-#include "../head/Socket.h"
-#include "../head/Epoll.h"
+#include "Socket.h"
+#include "Epoll.h"
 #include <memory>
 typedef std::shared_ptr<char[]> SharedBuffPtr;
 class TcpConnect
