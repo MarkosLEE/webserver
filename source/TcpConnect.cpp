@@ -4,7 +4,7 @@
 #include <string.h>
 TcpConnect::TcpConnect(const int socketFd_, int buffMaxLength_, std::shared_ptr<Epoll> epoll_) : socketFd_(socketFd_),
                                                                                                  buffMaxLength_(buffMaxLength_),
-                                                                                                 buff_(new char[buffMaxLength_]),
+                                                                                                 buff_(new char[buffMaxLength_],std::default_delete<char[]>()),
                                                                                                  buffCurentLength_(0),
                                                                                                  buffReadPos_(0),
                                                                                                  epoll_(epoll_),
